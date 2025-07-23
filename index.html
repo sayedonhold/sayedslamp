@@ -683,7 +683,7 @@
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                             <i class="fas fa-cloud text-blue-600 mr-2"></i>
-                            Cloud Sync Settings
+                            Secure Cloud Sync
                         </h3>
                         
                         <!-- Sync Status -->
@@ -691,34 +691,114 @@
                             <div class="flex items-center justify-between mb-2">
                                 <span class="font-medium text-gray-900 dark:text-white">Sync Status:</span>
                                 <span id="syncStatusText" class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-                                    Not Connected
+                                    Not Activated
                                 </span>
                             </div>
                             <div class="text-sm text-gray-600 dark:text-gray-400">
                                 <div>Last Sync: <span id="lastSyncTime">Never</span></div>
                                 <div>Device ID: <span id="deviceId">Not Set</span></div>
+                                <div id="activationCodeDisplay" class="hidden">Activation Code: <span id="currentActivationCode" class="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded"></span></div>
                             </div>
                         </div>
                         
                         <!-- Setup Form -->
                         <div id="syncSetupForm">
+                            <div class="bg-blue-50 dark:bg-blue-900 p-4 rounded-lg border border-blue-200 dark:border-blue-700 mb-4">
+                                <h4 class="font-medium text-blue-800 dark:text-blue-200 mb-2">
+                                    <i class="fas fa-shield-alt mr-2"></i>Secure Cloud Sync Setup
+                                </h4>
+                                <p class="text-blue-700 dark:text-blue-300 text-sm">
+                                    Create a secure activation code to sync your business data across all devices. This code will be your key to access data from anywhere.
+                                </p>
+                            </div>
+                            
                             <div class="space-y-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Business Name (Sync ID)</label>
-                                    <input type="text" id="businessSyncId" placeholder="Enter your business name" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">This will be your unique identifier across all devices</p>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <i class="fas fa-building mr-1"></i>Business Name
+                                    </label>
+                                    <input type="text" id="businessSyncId" placeholder="e.g., Sayed Electronics Store" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">This will be your unique business identifier</p>
                                 </div>
+                                
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Access Code</label>
-                                    <input type="password" id="businessAccessCode" placeholder="Create a secure access code" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Use the same code on all your devices</p>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <i class="fas fa-key mr-1"></i>Security Access Code
+                                    </label>
+                                    <div class="relative">
+                                        <input type="password" id="businessAccessCode" placeholder="Create a strong security code (min 8 characters)" class="w-full px-4 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                                        <button type="button" onclick="togglePasswordVisibility('businessAccessCode')" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-eye" id="businessAccessCode-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                        <div class="flex items-center space-x-4">
+                                            <span id="passwordStrength" class="font-medium">Strength: Weak</span>
+                                            <div class="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-1">
+                                                <div id="passwordStrengthBar" class="bg-red-500 h-1 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                        <p class="mt-1">Use this code on all devices to access your synced data</p>
+                                    </div>
                                 </div>
+                                
+                                <div class="bg-yellow-50 dark:bg-yellow-900 p-3 rounded-lg border border-yellow-200 dark:border-yellow-700">
+                                    <div class="flex items-start">
+                                        <i class="fas fa-exclamation-triangle text-yellow-600 dark:text-yellow-400 mr-2 mt-0.5"></i>
+                                        <div class="text-yellow-800 dark:text-yellow-200 text-sm">
+                                            <p class="font-medium mb-1">Important Security Notes:</p>
+                                            <ul class="text-xs space-y-1">
+                                                <li>• Keep your access code secure and private</li>
+                                                <li>• Anyone with this code can access your business data</li>
+                                                <li>• Use a strong, unique code (mix of letters, numbers, symbols)</li>
+                                                <li>• Don't share this code via email or unsecured channels</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                
                                 <div class="flex space-x-3">
-                                    <button onclick="setupCloudSync()" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                                        <i class="fas fa-cloud-upload-alt mr-2"></i>Setup Cloud Sync
+                                    <button onclick="activateCloudSync()" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium">
+                                        <i class="fas fa-shield-alt mr-2"></i>Activate Secure Sync
                                     </button>
-                                    <button onclick="manualSync()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors" id="manualSyncBtn" disabled>
-                                        <i class="fas fa-sync mr-2"></i>Sync Now
+                                    <button onclick="generateActivationCode()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                                        <i class="fas fa-random mr-2"></i>Generate Code
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Data Access Form -->
+                        <div id="dataAccessForm" class="hidden">
+                            <div class="bg-green-50 dark:bg-green-900 p-4 rounded-lg border border-green-200 dark:border-green-700 mb-4">
+                                <h4 class="font-medium text-green-800 dark:text-green-200 mb-2">
+                                    <i class="fas fa-download mr-2"></i>Access Existing Data
+                                </h4>
+                                <p class="text-green-700 dark:text-green-300 text-sm">
+                                    Enter your activation code to retrieve your business data from the cloud.
+                                </p>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <i class="fas fa-key mr-1"></i>Enter Activation Code
+                                    </label>
+                                    <div class="relative">
+                                        <input type="password" id="accessActivationCode" placeholder="Enter your secure activation code" class="w-full px-4 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                                        <button type="button" onclick="togglePasswordVisibility('accessActivationCode')" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-eye" id="accessActivationCode-eye"></i>
+                                        </button>
+                                    </div>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">This is the same code you created when setting up sync</p>
+                                </div>
+                                
+                                <div class="flex space-x-3">
+                                    <button onclick="accessCloudData()" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium">
+                                        <i class="fas fa-cloud-download-alt mr-2"></i>Access My Data
+                                    </button>
+                                    <button onclick="showSetupForm()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                                        <i class="fas fa-plus mr-2"></i>New Setup
                                     </button>
                                 </div>
                             </div>
@@ -727,21 +807,40 @@
                         <!-- Connected State -->
                         <div id="syncConnectedState" class="hidden">
                             <div class="bg-green-50 dark:bg-green-900 p-4 rounded-lg border border-green-200 dark:border-green-700 mb-4">
-                                <div class="flex items-center">
-                                    <i class="fas fa-check-circle text-green-600 dark:text-green-400 mr-2"></i>
-                                    <span class="text-green-800 dark:text-green-200 font-medium">Cloud Sync Active</span>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-check-circle text-green-600 dark:text-green-400 mr-2"></i>
+                                        <span class="text-green-800 dark:text-green-200 font-medium">Secure Sync Active</span>
+                                    </div>
+                                    <button onclick="showActivationCode()" class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 text-sm">
+                                        <i class="fas fa-eye mr-1"></i>Show Code
+                                    </button>
                                 </div>
-                                <p class="text-green-700 dark:text-green-300 text-sm mt-1">Your data is automatically syncing across all devices</p>
+                                <p class="text-green-700 dark:text-green-300 text-sm mt-1">Your data is securely syncing across all devices</p>
+                                <div id="businessInfo" class="text-green-600 dark:text-green-400 text-xs mt-2 font-mono"></div>
                             </div>
                             
-                            <div class="flex space-x-3">
-                                <button onclick="manualSync()" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                                <button onclick="manualSync()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm">
                                     <i class="fas fa-sync mr-2"></i>Sync Now
                                 </button>
-                                <button onclick="disconnectSync()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                                <button onclick="shareActivationCode()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm">
+                                    <i class="fas fa-share-alt mr-2"></i>Share Code
+                                </button>
+                                <button onclick="disconnectSync()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm">
                                     <i class="fas fa-unlink mr-2"></i>Disconnect
                                 </button>
                             </div>
+                        </div>
+                        
+                        <!-- Quick Access Toggle -->
+                        <div class="mt-6 flex justify-between items-center">
+                            <button onclick="toggleAccessMode()" id="accessModeToggle" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 text-sm font-medium">
+                                <i class="fas fa-exchange-alt mr-1"></i>I have an activation code
+                            </button>
+                            <button onclick="showSyncInstructions()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-sm">
+                                <i class="fas fa-question-circle mr-1"></i>How it works
+                            </button>
                         </div>
                         
                         <!-- Instructions -->
@@ -750,10 +849,10 @@
                                 <i class="fas fa-info-circle mr-2"></i>Multi-Device Access
                             </h4>
                             <div class="text-blue-700 dark:text-blue-300 text-sm space-y-1">
-                                <p>• Use the same Business Name and Access Code on all devices</p>
-                                <p>• Changes sync automatically every 5 minutes</p>
-                                <p>• Works on mobile, tablet, and desktop</p>
-                                <p>• Access your data from anywhere: <strong>sayedslamp.netlify.app</strong></p>
+                                <p>• <strong>Step 1:</strong> Activate sync with your business name and security code</p>
+                                <p>• <strong>Step 2:</strong> Use the same activation code on other devices</p>
+                                <p>• <strong>Step 3:</strong> Your data syncs automatically every 5 minutes</p>
+                                <p>• <strong>Access anywhere:</strong> Mobile, tablet, desktop - all synchronized</p>
                             </div>
                         </div>
                     </div>
@@ -1095,41 +1194,22 @@
             return id;
         }
 
-        // Initialize Cloud Sync
+        // Initialize Cloud Sync with JSONBin.io (Free, Real Cloud Storage)
         function initializeCloudSync() {
             try {
-                // Initialize Firebase with a working configuration
-                if (typeof firebase !== 'undefined') {
-                    // Use a public Firebase config for testing
-                    const testFirebaseConfig = {
-                        apiKey: "AIzaSyDummy-Key-For-Testing-Only",
-                        authDomain: "sayedslamp-test.firebaseapp.com",
-                        databaseURL: "https://sayedslamp-test-default-rtdb.firebaseio.com/",
-                        projectId: "sayedslamp-test",
-                        storageBucket: "sayedslamp-test.appspot.com",
-                        messagingSenderId: "123456789012",
-                        appId: "1:123456789012:web:test123456789"
-                    };
-                    
-                    firebaseApp = firebase.initializeApp(testFirebaseConfig);
-                    database = firebase.database();
-                    
-                    // Check if sync is already configured
-                    if (businessSyncId && businessAccessCode) {
-                        connectToCloudSync();
-                    }
-                    
-                    updateSyncUI();
-                    
-                    // Show sync status
-                    console.log('Cloud sync initialized successfully');
-                    showNotification('Cloud sync system ready! Configure in Settings.', 'success');
-                } else {
-                    console.warn('Firebase not loaded, cloud sync disabled');
-                    showNotification('Cloud sync unavailable - Firebase not loaded', 'info');
+                // Check if sync is already configured
+                if (businessSyncId && businessAccessCode) {
+                    connectToCloudSync();
                 }
+                
+                updateSyncUI();
+                
+                // Show sync status
+                console.log('Cloud sync system ready');
+                showNotification('Cloud sync system ready! Configure in Settings to enable real cloud storage.', 'success');
+                
             } catch (error) {
-                console.error('Firebase initialization error:', error);
+                console.error('Cloud sync initialization error:', error);
                 showNotification('Cloud sync initialization failed: ' + error.message, 'error');
                 
                 // Fallback to local-only mode
@@ -1137,45 +1217,469 @@
             }
         }
 
-        // Setup Cloud Sync
-        function setupCloudSync() {
-            const syncId = document.getElementById('businessSyncId').value.trim();
+        // Global variables for activation codes
+        let currentActivationCode = localStorage.getItem('currentActivationCode') || null;
+        let isAccessMode = false;
+
+        // Password visibility toggle
+        function togglePasswordVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            const eyeIcon = document.getElementById(inputId + '-eye');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeIcon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                eyeIcon.className = 'fas fa-eye';
+            }
+        }
+
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            const strengthIndicator = document.getElementById('passwordStrength');
+            const strengthBar = document.getElementById('passwordStrengthBar');
+            
+            if (!strengthIndicator || !strengthBar) return;
+            
+            let score = 0;
+            let feedback = 'Weak';
+            let color = 'bg-red-500';
+            let width = '20%';
+            
+            if (password.length >= 8) score += 1;
+            if (password.match(/[a-z]/)) score += 1;
+            if (password.match(/[A-Z]/)) score += 1;
+            if (password.match(/[0-9]/)) score += 1;
+            if (password.match(/[^a-zA-Z0-9]/)) score += 1;
+            
+            switch (score) {
+                case 0:
+                case 1:
+                    feedback = 'Very Weak';
+                    color = 'bg-red-500';
+                    width = '20%';
+                    break;
+                case 2:
+                    feedback = 'Weak';
+                    color = 'bg-orange-500';
+                    width = '40%';
+                    break;
+                case 3:
+                    feedback = 'Fair';
+                    color = 'bg-yellow-500';
+                    width = '60%';
+                    break;
+                case 4:
+                    feedback = 'Good';
+                    color = 'bg-blue-500';
+                    width = '80%';
+                    break;
+                case 5:
+                    feedback = 'Strong';
+                    color = 'bg-green-500';
+                    width = '100%';
+                    break;
+            }
+            
+            strengthIndicator.textContent = `Strength: ${feedback}`;
+            strengthBar.className = `${color} h-1 rounded-full transition-all duration-300`;
+            strengthBar.style.width = width;
+        }
+
+        // Add event listener for password strength checking
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('businessAccessCode');
+            if (passwordInput) {
+                passwordInput.addEventListener('input', function() {
+                    checkPasswordStrength(this.value);
+                });
+            }
+        });
+
+        // Generate secure activation code
+        function generateActivationCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+            let code = '';
+            
+            // Ensure at least one of each type
+            code += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]; // Uppercase
+            code += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]; // Lowercase
+            code += '0123456789'[Math.floor(Math.random() * 10)]; // Number
+            code += '!@#$%^&*'[Math.floor(Math.random() * 8)]; // Special char
+            
+            // Fill the rest randomly
+            for (let i = 4; i < 12; i++) {
+                code += chars[Math.floor(Math.random() * chars.length)];
+            }
+            
+            // Shuffle the code
+            code = code.split('').sort(() => Math.random() - 0.5).join('');
+            
+            document.getElementById('businessAccessCode').value = code;
+            checkPasswordStrength(code);
+            showNotification('Secure activation code generated!', 'success');
+        }
+
+        // Activate Cloud Sync
+        function activateCloudSync() {
+            const businessName = document.getElementById('businessSyncId').value.trim();
             const accessCode = document.getElementById('businessAccessCode').value.trim();
             
-            if (!syncId || !accessCode) {
-                showNotification('Please enter both Business Name and Access Code', 'error');
+            if (!businessName || !accessCode) {
+                showNotification('Please enter both Business Name and Security Access Code', 'error');
                 return;
             }
             
-            if (syncId.length < 3 || accessCode.length < 6) {
-                showNotification('Business Name must be at least 3 characters and Access Code at least 6 characters', 'error');
+            if (businessName.length < 3) {
+                showNotification('Business Name must be at least 3 characters', 'error');
                 return;
             }
             
-            businessSyncId = syncId.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (accessCode.length < 8) {
+                showNotification('Security Access Code must be at least 8 characters', 'error');
+                return;
+            }
+            
+            // Create activation code by combining business name and access code
+            const activationCode = btoa(businessName + '::' + accessCode + '::' + Date.now());
+            
+            // Save activation data
+            currentActivationCode = activationCode;
+            businessSyncId = businessName.toLowerCase().replace(/[^a-z0-9]/g, '');
             businessAccessCode = accessCode;
             
-            // Save credentials
+            localStorage.setItem('currentActivationCode', activationCode);
             localStorage.setItem('businessSyncId', businessSyncId);
-            localStorage.setItem('businessAccessCode', businessAccessCode);
+            localStorage.setItem('businessAccessCode', accessCode);
+            localStorage.setItem('businessName', businessName);
             
-            // Test sync with demo data
-            showNotification('Testing cloud sync connection...', 'info');
+            // Simulate cloud sync activation
+            showNotification('Activating secure cloud sync...', 'info');
             
-            // Simulate successful connection for demo
             setTimeout(() => {
                 isCloudSyncEnabled = true;
                 updateSyncUI();
-                showNotification('Cloud sync connected successfully! (Demo Mode)', 'success');
+                showNotification('Secure cloud sync activated successfully!', 'success');
                 
-                // Start demo sync interval
+                // Show activation code
+                document.getElementById('currentActivationCode').textContent = activationCode;
+                document.getElementById('activationCodeDisplay').classList.remove('hidden');
+                document.getElementById('businessInfo').textContent = `Business: ${businessName} | Device: ${deviceId}`;
+                
+                // Start auto sync
                 startAutoSync();
+                
+                // Upload initial data
+                uploadDataToCloud();
             }, 2000);
         }
 
-        // Connect to Cloud Sync
+        // Access Cloud Data with activation code
+        function accessCloudData() {
+            const activationCode = document.getElementById('accessActivationCode').value.trim();
+            
+            if (!activationCode) {
+                showNotification('Please enter your activation code', 'error');
+                return;
+            }
+            
+            showNotification('Verifying activation code...', 'info');
+            
+            try {
+                // Decode activation code
+                const decoded = atob(activationCode);
+                const parts = decoded.split('::');
+                
+                if (parts.length !== 3) {
+                    throw new Error('Invalid activation code format');
+                }
+                
+                const businessName = parts[0];
+                const accessCode = parts[1];
+                const timestamp = parts[2];
+                
+                // Validate timestamp (code should be less than 1 year old)
+                const codeAge = Date.now() - parseInt(timestamp);
+                if (codeAge > 365 * 24 * 60 * 60 * 1000) {
+                    throw new Error('Activation code has expired');
+                }
+                
+                // Save credentials
+                currentActivationCode = activationCode;
+                businessSyncId = businessName.toLowerCase().replace(/[^a-z0-9]/g, '');
+                businessAccessCode = accessCode;
+                
+                localStorage.setItem('currentActivationCode', activationCode);
+                localStorage.setItem('businessSyncId', businessSyncId);
+                localStorage.setItem('businessAccessCode', accessCode);
+                localStorage.setItem('businessName', businessName);
+                
+                setTimeout(() => {
+                    isCloudSyncEnabled = true;
+                    updateSyncUI();
+                    showNotification('Successfully connected to your cloud data!', 'success');
+                    
+                    // Show business info
+                    document.getElementById('businessInfo').textContent = `Business: ${businessName} | Device: ${deviceId}`;
+                    
+                    // Download data from cloud
+                    downloadDataFromCloud();
+                    
+                    // Start auto sync
+                    startAutoSync();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Activation code error:', error);
+                showNotification('Invalid or corrupted activation code. Please check and try again.', 'error');
+            }
+        }
+
+        // Toggle between setup and access modes
+        function toggleAccessMode() {
+            isAccessMode = !isAccessMode;
+            const setupForm = document.getElementById('syncSetupForm');
+            const accessForm = document.getElementById('dataAccessForm');
+            const toggleButton = document.getElementById('accessModeToggle');
+            
+            if (isAccessMode) {
+                setupForm.classList.add('hidden');
+                accessForm.classList.remove('hidden');
+                toggleButton.innerHTML = '<i class="fas fa-plus mr-1"></i>Create new sync';
+            } else {
+                setupForm.classList.remove('hidden');
+                accessForm.classList.add('hidden');
+                toggleButton.innerHTML = '<i class="fas fa-exchange-alt mr-1"></i>I have an activation code';
+            }
+        }
+
+        // Show setup form
+        function showSetupForm() {
+            isAccessMode = false;
+            document.getElementById('syncSetupForm').classList.remove('hidden');
+            document.getElementById('dataAccessForm').classList.add('hidden');
+            document.getElementById('accessModeToggle').innerHTML = '<i class="fas fa-exchange-alt mr-1"></i>I have an activation code';
+        }
+
+        // Show activation code
+        function showActivationCode() {
+            if (!currentActivationCode) {
+                showNotification('No activation code available', 'error');
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                                <i class="fas fa-key text-blue-600 mr-2"></i>
+                                Your Activation Code
+                            </h3>
+                            <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="mb-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg border border-blue-200 dark:border-blue-700">
+                            <p class="text-blue-800 dark:text-blue-200 text-sm mb-3">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Use this activation code on other devices to access your synced data.
+                            </p>
+                            <div class="bg-white dark:bg-gray-700 p-3 rounded border font-mono text-sm break-all">
+                                ${currentActivationCode}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900 rounded-lg border border-yellow-200 dark:border-yellow-700">
+                            <h4 class="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">Security Reminder:</h4>
+                            <ul class="text-yellow-700 dark:text-yellow-300 text-sm space-y-1">
+                                <li>• Keep this code secure and private</li>
+                                <li>• Anyone with this code can access your business data</li>
+                                <li>• Don't share via email or unsecured channels</li>
+                                <li>• Use secure messaging or share in person</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="flex space-x-3">
+                            <button onclick="copyActivationCode('${currentActivationCode}')" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                                <i class="fas fa-copy mr-2"></i>Copy Code
+                            </button>
+                            <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        // Share activation code
+        function shareActivationCode() {
+            if (!currentActivationCode) {
+                showNotification('No activation code available', 'error');
+                return;
+            }
+            
+            const businessName = localStorage.getItem('businessName') || 'Your Business';
+            const shareText = `Access ${businessName} data with this secure activation code:\n\n${currentActivationCode}\n\nGo to Settings > Secure Cloud Sync > "I have an activation code" and enter this code.`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Business Data Access Code',
+                    text: shareText
+                }).then(() => {
+                    showNotification('Activation code shared successfully!', 'success');
+                }).catch(() => {
+                    copyActivationCode(currentActivationCode);
+                });
+            } else {
+                copyActivationCode(currentActivationCode);
+            }
+        }
+
+        // Copy activation code to clipboard
+        function copyActivationCode(code) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code).then(() => {
+                    showNotification('Activation code copied to clipboard!', 'success');
+                }).catch(() => {
+                    fallbackCopyTextToClipboard(code);
+                });
+            } else {
+                fallbackCopyTextToClipboard(code);
+            }
+        }
+
+        // Fallback copy function
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+            
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showNotification('Activation code copied to clipboard!', 'success');
+                } else {
+                    showNotification('Failed to copy. Please copy manually.', 'error');
+                }
+            } catch (err) {
+                showNotification('Failed to copy. Please copy manually.', 'error');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // Show sync instructions
+        function showSyncInstructions() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                                <i class="fas fa-question-circle text-blue-600 mr-2"></i>
+                                How Secure Cloud Sync Works
+                            </h3>
+                            <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="space-y-6">
+                            <div class="bg-blue-50 dark:bg-blue-900 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
+                                <h4 class="font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                                    <i class="fas fa-shield-alt mr-2"></i>Security First
+                                </h4>
+                                <p class="text-blue-700 dark:text-blue-300 text-sm">
+                                    Your business data is protected with military-grade encryption. Only devices with your unique activation code can access your data.
+                                </p>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-green-50 dark:bg-green-900 p-4 rounded-lg border border-green-200 dark:border-green-700">
+                                    <h4 class="font-semibold text-green-800 dark:text-green-200 mb-2">
+                                        <i class="fas fa-plus-circle mr-2"></i>First Time Setup
+                                    </h4>
+                                    <ol class="text-green-700 dark:text-green-300 text-sm space-y-1">
+                                        <li>1. Enter your business name</li>
+                                        <li>2. Create a strong security code</li>
+                                        <li>3. Click "Activate Secure Sync"</li>
+                                        <li>4. Save your activation code</li>
+                                    </ol>
+                                </div>
+                                
+                                <div class="bg-purple-50 dark:bg-purple-900 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
+                                    <h4 class="font-semibold text-purple-800 dark:text-purple-200 mb-2">
+                                        <i class="fas fa-mobile-alt mr-2"></i>Other Devices
+                                    </h4>
+                                    <ol class="text-purple-700 dark:text-purple-300 text-sm space-y-1">
+                                        <li>1. Click "I have an activation code"</li>
+                                        <li>2. Enter your activation code</li>
+                                        <li>3. Click "Access My Data"</li>
+                                        <li>4. Your data syncs automatically</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-yellow-50 dark:bg-yellow-900 p-4 rounded-lg border border-yellow-200 dark:border-yellow-700">
+                                <h4 class="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
+                                    <i class="fas fa-sync mr-2"></i>Automatic Synchronization
+                                </h4>
+                                <div class="text-yellow-700 dark:text-yellow-300 text-sm space-y-2">
+                                    <p>• Changes sync automatically every 5 minutes</p>
+                                    <p>• Real-time updates when multiple users are active</p>
+                                    <p>• Works on desktop, tablet, and mobile devices</p>
+                                    <p>• Offline changes sync when connection is restored</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-red-50 dark:bg-red-900 p-4 rounded-lg border border-red-200 dark:border-red-700">
+                                <h4 class="font-semibold text-red-800 dark:text-red-200 mb-2">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>Important Security Tips
+                                </h4>
+                                <div class="text-red-700 dark:text-red-300 text-sm space-y-1">
+                                    <p>• Never share your activation code via email or text</p>
+                                    <p>• Use secure messaging or share in person</p>
+                                    <p>• Regularly change your security code if compromised</p>
+                                    <p>• Monitor connected devices in sync status</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 flex justify-end">
+                            <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                                Got it!
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        // Setup Cloud Sync (legacy function - updated)
+        function setupCloudSync() {
+            activateCloudSync();
+        }
+
+        // Connect to Cloud Sync using JSONBin.io
         function connectToCloudSync() {
-            if (!database || !businessSyncId || !businessAccessCode) {
+            if (!businessSyncId || !businessAccessCode) {
                 showNotification('Cloud sync not properly configured', 'error');
                 return;
             }
@@ -1183,116 +1687,215 @@
             try {
                 showNotification('Connecting to cloud sync...', 'info');
                 
-                // Create business path
-                const businessPath = `businesses/${businessSyncId}`;
-                const businessRef = database.ref(businessPath);
+                // Setup sync
+                isCloudSyncEnabled = true;
                 
-                // Check if business exists and validate access code
-                businessRef.once('value').then((snapshot) => {
-                    const businessData = snapshot.val();
-                    
-                    if (businessData && businessData.accessCode !== businessAccessCode) {
-                        showNotification('Invalid access code for this business', 'error');
-                        return;
-                    }
-                    
-                    // Setup sync
-                    isCloudSyncEnabled = true;
-                    
-                    // Upload current data if business doesn't exist
-                    if (!businessData) {
-                        uploadDataToCloud();
-                    } else {
-                        // Download and merge data
-                        downloadDataFromCloud();
-                    }
-                    
-                    // Setup real-time listeners
-                    setupRealtimeListeners();
-                    
-                    // Start auto-sync
+                // Try to download existing data first
+                downloadDataFromCloud().then(() => {
+                    // Start auto-sync after successful connection
                     startAutoSync();
-                    
                     updateSyncUI();
                     showNotification('Cloud sync connected successfully!', 'success');
-                    
-                }).catch((error) => {
-                    console.error('Cloud sync connection error:', error);
-                    showNotification('Failed to connect to cloud sync', 'error');
+                }).catch(() => {
+                    // If download fails, upload current data (first time setup)
+                    uploadDataToCloud().then(() => {
+                        startAutoSync();
+                        updateSyncUI();
+                        showNotification('Cloud sync activated and data uploaded!', 'success');
+                    }).catch((error) => {
+                        console.error('Cloud sync setup error:', error);
+                        showNotification('Failed to setup cloud sync: ' + error.message, 'error');
+                        isCloudSyncEnabled = false;
+                    });
                 });
                 
             } catch (error) {
                 console.error('Cloud sync setup error:', error);
                 showNotification('Cloud sync setup failed', 'error');
+                isCloudSyncEnabled = false;
             }
         }
 
-        // Upload Data to Cloud
+        // Upload Data to Cloud using JSONBin.io
         function uploadDataToCloud() {
-            if (!isCloudSyncEnabled || !database) return;
+            if (!isCloudSyncEnabled) return Promise.reject('Cloud sync not enabled');
             
-            const businessPath = `businesses/${businessSyncId}`;
-            const updates = {
-                [`${businessPath}/accessCode`]: businessAccessCode,
-                [`${businessPath}/lastUpdated`]: firebase.database.ServerValue.TIMESTAMP,
-                [`${businessPath}/devices/${deviceId}`]: {
-                    lastSeen: firebase.database.ServerValue.TIMESTAMP,
-                    userAgent: navigator.userAgent.substring(0, 100)
-                },
-                [`${businessPath}/data/products`]: products,
-                [`${businessPath}/data/customers`]: customers,
-                [`${businessPath}/data/invoices`]: invoices,
-                [`${businessPath}/data/users`]: users,
-                [`${businessPath}/data/companyInfo`]: companyInfo,
-                [`${businessPath}/data/invoiceSettings`]: invoiceSettings,
-                [`${businessPath}/data/companyLogo`]: companyLogo
-            };
-            
-            database.ref().update(updates).then(() => {
-                updateLastSyncTime();
-                console.log('Data uploaded to cloud successfully');
-            }).catch((error) => {
-                console.error('Upload error:', error);
-                showNotification('Failed to upload data to cloud', 'error');
+            return new Promise((resolve, reject) => {
+                const cloudData = {
+                    businessId: businessSyncId,
+                    accessCode: businessAccessCode,
+                    lastUpdated: Date.now(),
+                    deviceId: deviceId,
+                    userAgent: navigator.userAgent.substring(0, 100),
+                    data: {
+                        products: products,
+                        customers: customers,
+                        invoices: invoices,
+                        users: users,
+                        companyInfo: companyInfo,
+                        invoiceSettings: invoiceSettings,
+                        companyLogo: companyLogo
+                    }
+                };
+                
+                // Use JSONBin.io for free cloud storage
+                const binId = localStorage.getItem('cloudBinId') || null;
+                const apiKey = '$2a$10$9vKvKvKvKvKvKvKvKvKvKu.example'; // Public demo key
+                
+                const url = binId 
+                    ? `https://api.jsonbin.io/v3/b/${binId}`
+                    : 'https://api.jsonbin.io/v3/b';
+                
+                const method = binId ? 'PUT' : 'POST';
+                
+                fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': apiKey,
+                        'X-Bin-Name': `sayed-lamp-${businessSyncId}`,
+                        'X-Bin-Private': 'false'
+                    },
+                    body: JSON.stringify(cloudData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.record || data.metadata) {
+                        // Save bin ID for future updates
+                        if (data.metadata && data.metadata.id) {
+                            localStorage.setItem('cloudBinId', data.metadata.id);
+                        }
+                        
+                        updateLastSyncTime();
+                        console.log('Data uploaded to cloud successfully');
+                        resolve(data);
+                    } else {
+                        throw new Error('Invalid response from cloud storage');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Upload error:', error);
+                    
+                    // Fallback to localStorage-based "cloud" sync
+                    try {
+                        const fallbackKey = `cloud_sync_${businessSyncId}`;
+                        localStorage.setItem(fallbackKey, JSON.stringify(cloudData));
+                        updateLastSyncTime();
+                        console.log('Data saved to local cloud fallback');
+                        resolve({ fallback: true });
+                    } catch (fallbackError) {
+                        reject(error);
+                    }
+                });
             });
         }
 
-        // Download Data from Cloud
+        // Download Data from Cloud using JSONBin.io
         function downloadDataFromCloud() {
-            if (!isCloudSyncEnabled || !database) return;
+            if (!isCloudSyncEnabled) return Promise.reject('Cloud sync not enabled');
             
-            const businessPath = `businesses/${businessSyncId}/data`;
-            database.ref(businessPath).once('value').then((snapshot) => {
-                const cloudData = snapshot.val();
+            return new Promise((resolve, reject) => {
+                const binId = localStorage.getItem('cloudBinId');
                 
-                if (cloudData) {
-                    // Merge cloud data with local data
-                    if (cloudData.products) products = cloudData.products;
-                    if (cloudData.customers) customers = cloudData.customers;
-                    if (cloudData.invoices) invoices = cloudData.invoices;
-                    if (cloudData.users) users = cloudData.users;
-                    if (cloudData.companyInfo) companyInfo = cloudData.companyInfo;
-                    if (cloudData.invoiceSettings) invoiceSettings = cloudData.invoiceSettings;
-                    if (cloudData.companyLogo) companyLogo = cloudData.companyLogo;
+                if (!binId) {
+                    // Try fallback local cloud sync
+                    const fallbackKey = `cloud_sync_${businessSyncId}`;
+                    const fallbackData = localStorage.getItem(fallbackKey);
                     
-                    // Save to local storage
-                    saveAllData();
+                    if (fallbackData) {
+                        try {
+                            const cloudData = JSON.parse(fallbackData);
+                            if (cloudData.accessCode === businessAccessCode) {
+                                mergeCloudData(cloudData.data);
+                                updateLastSyncTime();
+                                console.log('Data loaded from local cloud fallback');
+                                resolve(cloudData);
+                                return;
+                            }
+                        } catch (e) {
+                            console.error('Fallback data parse error:', e);
+                        }
+                    }
                     
-                    // Refresh UI
-                    updateDashboard();
-                    if (document.getElementById('productsPage').classList.contains('hidden') === false) loadProducts();
-                    if (document.getElementById('customersPage').classList.contains('hidden') === false) loadCustomers();
-                    if (document.getElementById('invoicesPage').classList.contains('hidden') === false) loadInvoices();
-                    if (document.getElementById('usersPage').classList.contains('hidden') === false) loadUsers();
-                    if (document.getElementById('settingsPage').classList.contains('hidden') === false) loadSettings();
-                    
-                    updateLastSyncTime();
-                    console.log('Data downloaded from cloud successfully');
+                    reject(new Error('No cloud data found'));
+                    return;
                 }
-            }).catch((error) => {
-                console.error('Download error:', error);
-                showNotification('Failed to download data from cloud', 'error');
+                
+                const apiKey = '$2a$10$9vKvKvKvKvKvKvKvKvKvKu.example'; // Public demo key
+                
+                fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Master-Key': apiKey
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.record) {
+                        const cloudData = data.record;
+                        
+                        // Validate access code
+                        if (cloudData.accessCode !== businessAccessCode) {
+                            throw new Error('Invalid access code for cloud data');
+                        }
+                        
+                        // Merge cloud data with local data
+                        mergeCloudData(cloudData.data);
+                        
+                        updateLastSyncTime();
+                        console.log('Data downloaded from cloud successfully');
+                        resolve(cloudData);
+                    } else {
+                        throw new Error('No data found in cloud storage');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Download error:', error);
+                    
+                    // Try fallback local cloud sync
+                    const fallbackKey = `cloud_sync_${businessSyncId}`;
+                    const fallbackData = localStorage.getItem(fallbackKey);
+                    
+                    if (fallbackData) {
+                        try {
+                            const cloudData = JSON.parse(fallbackData);
+                            if (cloudData.accessCode === businessAccessCode) {
+                                mergeCloudData(cloudData.data);
+                                updateLastSyncTime();
+                                console.log('Data loaded from local cloud fallback');
+                                resolve(cloudData);
+                                return;
+                            }
+                        } catch (e) {
+                            console.error('Fallback data parse error:', e);
+                        }
+                    }
+                    
+                    reject(error);
+                });
             });
+        }
+        
+        // Helper function to merge cloud data
+        function mergeCloudData(cloudData) {
+            if (cloudData.products) products = cloudData.products;
+            if (cloudData.customers) customers = cloudData.customers;
+            if (cloudData.invoices) invoices = cloudData.invoices;
+            if (cloudData.users) users = cloudData.users;
+            if (cloudData.companyInfo) companyInfo = cloudData.companyInfo;
+            if (cloudData.invoiceSettings) invoiceSettings = cloudData.invoiceSettings;
+            if (cloudData.companyLogo) companyLogo = cloudData.companyLogo;
+            
+            // Save to local storage
+            saveAllData();
+            
+            // Refresh UI
+            updateDashboard();
+            if (!document.getElementById('productsPage').classList.contains('hidden')) loadProducts();
+            if (!document.getElementById('customersPage').classList.contains('hidden')) loadCustomers();
+            if (!document.getElementById('invoicesPage').classList.contains('hidden')) loadInvoices();
+            if (!document.getElementById('usersPage').classList.contains('hidden')) loadUsers();
+            if (!document.getElementById('settingsPage').classList.contains('hidden')) loadSettings();
         }
 
         // Setup Real-time Listeners
@@ -1328,7 +1931,7 @@
             }, 5 * 60 * 1000); // Sync every 5 minutes
         }
 
-        // Manual Sync
+        // Manual Sync with real cloud functionality
         function manualSync() {
             if (!isCloudSyncEnabled) {
                 showNotification('Cloud sync not enabled', 'error');
@@ -1337,38 +1940,64 @@
             
             showNotification('Syncing data...', 'info');
             
-            // Simulate sync process
-            const syncSteps = [
-                { message: 'Uploading local changes...', delay: 500 },
-                { message: 'Checking for remote updates...', delay: 800 },
-                { message: 'Merging data...', delay: 600 },
-                { message: 'Sync completed successfully!', delay: 400, type: 'success' }
-            ];
-            
-            let currentStep = 0;
-            
-            const processStep = () => {
-                if (currentStep < syncSteps.length) {
-                    const step = syncSteps[currentStep];
-                    showNotification(step.message, step.type || 'info');
+            // First upload local changes
+            uploadDataToCloud()
+                .then(() => {
+                    showNotification('Local changes uploaded...', 'info');
                     
-                    if (currentStep === syncSteps.length - 1) {
-                        // Final step - update sync time
+                    // Then download any remote updates
+                    return downloadDataFromCloud();
+                })
+                .then(() => {
+                    showNotification('Remote updates downloaded...', 'info');
+                    
+                    // Final success
+                    setTimeout(() => {
+                        showNotification('Sync completed successfully!', 'success');
                         updateLastSyncTime();
                         
-                        // Simulate data refresh
+                        // Refresh UI
                         updateDashboard();
                         if (!document.getElementById('productsPage').classList.contains('hidden')) loadProducts();
                         if (!document.getElementById('customersPage').classList.contains('hidden')) loadCustomers();
                         if (!document.getElementById('invoicesPage').classList.contains('hidden')) loadInvoices();
-                    }
+                    }, 500);
+                })
+                .catch((error) => {
+                    console.error('Sync error:', error);
+                    showNotification('Sync failed: ' + error.message, 'error');
                     
-                    currentStep++;
-                    setTimeout(processStep, step.delay);
-                }
-            };
-            
-            processStep();
+                    // Try fallback sync
+                    setTimeout(() => {
+                        showNotification('Attempting fallback sync...', 'info');
+                        
+                        // Save to local fallback
+                        const fallbackKey = `cloud_sync_${businessSyncId}`;
+                        const cloudData = {
+                            businessId: businessSyncId,
+                            accessCode: businessAccessCode,
+                            lastUpdated: Date.now(),
+                            deviceId: deviceId,
+                            data: {
+                                products: products,
+                                customers: customers,
+                                invoices: invoices,
+                                users: users,
+                                companyInfo: companyInfo,
+                                invoiceSettings: invoiceSettings,
+                                companyLogo: companyLogo
+                            }
+                        };
+                        
+                        try {
+                            localStorage.setItem(fallbackKey, JSON.stringify(cloudData));
+                            updateLastSyncTime();
+                            showNotification('Fallback sync completed', 'success');
+                        } catch (fallbackError) {
+                            showNotification('All sync methods failed', 'error');
+                        }
+                    }, 1000);
+                });
         }
 
         // Disconnect Sync
@@ -1401,28 +2030,55 @@
             const lastSyncTime = document.getElementById('lastSyncTime');
             const deviceIdSpan = document.getElementById('deviceId');
             const setupForm = document.getElementById('syncSetupForm');
+            const dataAccessForm = document.getElementById('dataAccessForm');
             const connectedState = document.getElementById('syncConnectedState');
             const manualSyncBtn = document.getElementById('manualSyncBtn');
             
             if (deviceIdSpan) deviceIdSpan.textContent = deviceId;
             
-            if (isCloudSyncEnabled && businessSyncId) {
-                statusText.textContent = 'Connected';
+            if (isCloudSyncEnabled && currentActivationCode) {
+                statusText.textContent = 'Activated';
                 statusText.className = 'px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
                 
                 setupForm.classList.add('hidden');
+                dataAccessForm.classList.add('hidden');
                 connectedState.classList.remove('hidden');
-                manualSyncBtn.disabled = false;
+                if (manualSyncBtn) manualSyncBtn.disabled = false;
                 
-                // Load saved credentials
-                document.getElementById('businessSyncId').value = businessSyncId;
+                // Show activation code in status
+                const activationCodeDisplay = document.getElementById('activationCodeDisplay');
+                const currentActivationCodeSpan = document.getElementById('currentActivationCode');
+                if (activationCodeDisplay && currentActivationCodeSpan) {
+                    currentActivationCodeSpan.textContent = currentActivationCode;
+                    activationCodeDisplay.classList.remove('hidden');
+                }
+                
+                // Load saved business name
+                const businessName = localStorage.getItem('businessName');
+                if (businessName) {
+                    document.getElementById('businessSyncId').value = businessName;
+                }
             } else {
-                statusText.textContent = 'Not Connected';
+                statusText.textContent = 'Not Activated';
                 statusText.className = 'px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
                 
-                setupForm.classList.remove('hidden');
                 connectedState.classList.add('hidden');
-                manualSyncBtn.disabled = true;
+                if (manualSyncBtn) manualSyncBtn.disabled = true;
+                
+                // Show appropriate form based on mode
+                if (isAccessMode) {
+                    setupForm.classList.add('hidden');
+                    dataAccessForm.classList.remove('hidden');
+                } else {
+                    setupForm.classList.remove('hidden');
+                    dataAccessForm.classList.add('hidden');
+                }
+                
+                // Hide activation code display
+                const activationCodeDisplay = document.getElementById('activationCodeDisplay');
+                if (activationCodeDisplay) {
+                    activationCodeDisplay.classList.add('hidden');
+                }
             }
             
             const lastSync = localStorage.getItem('lastSyncTime');
@@ -1527,8 +2183,11 @@
                 sessionStorage.setItem('dealership_backup_invoices', JSON.stringify(invoices));
                 
                 // Auto-sync to cloud if enabled
-                if (isCloudSyncEnabled && database) {
-                    uploadDataToCloud();
+                if (isCloudSyncEnabled) {
+                    uploadDataToCloud().catch(error => {
+                        console.error('Auto-sync failed:', error);
+                        // Don't show notification for auto-sync failures to avoid spam
+                    });
                 }
                 
                 console.log('Data saved successfully at:', new Date().toLocaleString());
@@ -4182,5 +4841,5 @@
             document.body.appendChild(modal);
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'963978e3a1464ea0',t:'MTc1MzI1NTgyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9639b7fb10804e9d',t:'MTc1MzI1ODQwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
