@@ -395,11 +395,10 @@
 
     const doc = new jsPDF("portrait", "mm", "a4");
 
-    // Tightly packed label: 60mm x 30mm
-    const labelWidth = 60;
-    const labelHeight = 30;
-    const marginX = 8;
-    const marginY = 10;
+    const labelWidth = 36; // 3.6cm
+    const labelHeight = 16; // 1.6cm
+    const marginX = 5;
+    const marginY = 5;
 
     const pageWidth = 210;
     const pageHeight = 297;
@@ -417,48 +416,49 @@
         const x = marginX + col * labelWidth;
         const y = marginY + row * labelHeight;
 
-        // Border
+        // Draw border
         doc.setDrawColor(120);
-        doc.setLineWidth(0.3);
+        doc.setLineWidth(0.2);
         doc.rect(x, y, labelWidth, labelHeight);
 
-        // Text layout
+        // Center text inside the label
         const centerX = x + labelWidth / 2;
-        let lineY = y + 6;
+        let lineY = y + 4;
 
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(7);
-        doc.setTextColor(33);
+        doc.setFontSize(6);
+        doc.setTextColor(50);
         doc.text("Imported & Distributed by", centerX, lineY, { align: "center" });
 
-        lineY += 5;
+        lineY += 3.3;
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(9);
+        doc.setFontSize(7.3);
         doc.setTextColor(0, 102, 153);
         doc.text(company, centerX, lineY, { align: "center" });
 
-        lineY += 5;
+        lineY += 3.2;
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(7);
+        doc.setFontSize(6.3);
         doc.setTextColor(0);
         doc.text(address1, centerX, lineY, { align: "center" });
 
-        lineY += 4;
+        lineY += 3.1;
         doc.text(address2, centerX, lineY, { align: "center" });
 
-        lineY += 6;
+        lineY += 3.5;
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(10);
+        doc.setFontSize(7.5);
         doc.setTextColor(0);
         doc.text(`MRP: ৳${price}`, centerX, lineY, { align: "center" });
       }
     }
 
-    const pdfDataUri = doc.output('dataurlstring');
+    const pdfDataUri = doc.output("dataurlstring");
     document.getElementById("labelPreview").src = pdfDataUri;
-    window.open(pdfDataUri, '_blank');
+    window.open(pdfDataUri, "_blank");
   });
 </script>
+
 
 
 
