@@ -118,7 +118,7 @@
                         </a></li> 
                         <li><a href="#" onclick="showPage('notifications')" class="nav-link flex items-center space-x-3 text-gray-300 hover:bg-gray-700 hover:text-blue-400 rounded-lg px-3 py-2 transition duration-200">
                             <i class="fas fa-bell w-5"></i><span>Notifications</span><li>
-                        </a></li>        
+                        </a></li>
                         <li><a href="#" onclick="showPage('settings')" class="nav-link flex items-center space-x-3 text-gray-300 hover:bg-gray-700 hover:text-blue-400 rounded-lg px-3 py-2 transition duration-200">
                             <i class="fas fa-cog w-5"></i><span>Settings</span>
                         </a></li>
@@ -315,6 +315,100 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Add this inside your HTML body where you have other page contents -->
+<div id="labelGeneratorPage" class="page-content hidden">
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold text-gray-100 mb-2">Label Generator</h2>
+    <p class="text-gray-400">Enter the price to generate printable product labels.</p>
+  </div>
+  
+  <div class="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+    <form id="labelForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Enter Price (৳)</label>
+        <input type="number" id="labelPrice" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Company Name</label>
+        <input type="text" id="labelCompany" value="AS ENTERPRISE" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Company Address</label>
+        <textarea id="labelAddress" rows="2" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100">Dhaka, Bangladesh</textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Number of Pages</label>
+        <input type="number" id="labelPages" value="1" min="1" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100">
+      </div>
+
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">
+        Generate Labels
+      </button>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  document.getElementById("labelForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const { jsPDF } = window.jspdf;
+    const price = parseFloat(document.getElementById("labelPrice").value).toFixed(2);
+    const company = document.getElementById("labelCompany").value;
+    const address = document.getElementById("labelAddress").value;
+    const pages = parseInt(document.getElementById("labelPages").value);
+
+    const doc = new jsPDF();
+    const labelWidth = 35; // mm
+    const labelHeight = 15; // mm
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const margin = 5;
+    const cols = Math.floor((pageWidth - margin) / labelWidth);
+    const rows = Math.floor((pageHeight - margin) / labelHeight);
+    const labelsPerPage = cols * rows;
+
+    for (let p = 0; p < pages; p++) {
+      if (p > 0) doc.addPage();
+      for (let i = 0; i < labelsPerPage; i++) {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const x = col * labelWidth + margin;
+        const y = row * labelHeight + margin;
+
+        // Draw boundary
+        doc.setDrawColor(200);
+        doc.rect(x, y, labelWidth, labelHeight);
+
+        // Text
+        doc.setFontSize(6);
+        doc.setTextColor(0);
+        doc.text("Imported & Distributed by", x + 1.5, y + 4);
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(7);
+        doc.setTextColor(0, 102, 153); // dark teal/blue
+        doc.text(company, x + 1.5, y + 8);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(6);
+        doc.setTextColor(0);
+        doc.text(address, x + 1.5, y + 11);
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.text(`MRP TK. ${price}`, x + 1.5, y + 14);
+      }
+    }
+
+    doc.save("labels.pdf");
+  });
+</script>
+
 
                 <!-- Products Page -->
                 <div id="productsPage" class="page-content hidden">
