@@ -3333,24 +3333,11 @@
                             <div class="billing-content">
                                 <div><strong>${data.customer.name}</strong></div>
                                 <div>${data.customer.address}</div>
-                                <div>Phone: ${data.customer.phone}</div>
-                                <div>Email: ${data.customer.email}</div>
-                            </div>
+                                                            </div>
                         </div>
                     </div>
                     
-                    <!-- Payment Summary -->
-                    <div class="payment-summary">
-                        <div class="payment-details">
-                            <div><strong>Invoice Date:</strong> ${new Date(data.invoice.date).toLocaleDateString()}</div>
-                            <div><strong>Due Date:</strong> ${new Date(data.invoice.dueDate).toLocaleDateString()}</div>
-                            <div><strong>Payment Terms:</strong> ${data.invoice.paymentTerm}</div>
-                            <div><strong>Currency:</strong> ${data.invoice.currency} (৳)</div>
-                        </div>
-                        
-                        <div class="total-amount-display">
-                            <div class="total-label">Total Amount</div>
-                            <div class="total-value">৳${data.totals.total.toLocaleString()}</div>
+
                         </div>
                     </div>
                     
