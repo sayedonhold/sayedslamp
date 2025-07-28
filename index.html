@@ -372,8 +372,8 @@
 <script>
   window.addEventListener("load", () => {
     document.getElementById("labelCompany").value = localStorage.getItem("labelCompany") || "AS ENTERPRISE";
-    document.getElementById("labelAddress1").value = localStorage.getItem("labelAddress1") || "Moulvibazar";
-    document.getElementById("labelAddress2").value = localStorage.getItem("labelAddress2") || "Dhaka, Bangladesh";
+    document.getElementById("labelAddress1").value = localStorage.getItem("labelAddress1") || "House No-43, Plot No-26, Mokim Katara";
+    document.getElementById("labelAddress2").value = localStorage.getItem("labelAddress2") || "Mowlovhi Bazaar, Dhaka, 1200";
   });
 
   function saveLabelDefaults() {
@@ -393,16 +393,19 @@
     const address2 = document.getElementById("labelAddress2").value;
     const pages = parseInt(document.getElementById("labelPages").value);
 
-    const doc = new jsPDF();
-    const labelWidth = 48;
-    const labelHeight = 28;
-    const marginX = 5;
-    const marginY = 5;
+    const doc = new jsPDF("portrait", "mm", "a4");
+
+    // Tightly packed label: 60mm x 30mm
+    const labelWidth = 60;
+    const labelHeight = 30;
+    const marginX = 8;
+    const marginY = 10;
+
     const pageWidth = 210;
     const pageHeight = 297;
 
-    const cols = Math.floor((pageWidth - marginX * 2) / labelWidth);
-    const rows = Math.floor((pageHeight - marginY * 2) / labelHeight);
+    const cols = Math.floor((pageWidth - 2 * marginX) / labelWidth);
+    const rows = Math.floor((pageHeight - 2 * marginY) / labelHeight);
     const labelsPerPage = cols * rows;
 
     for (let p = 0; p < pages; p++) {
@@ -411,41 +414,43 @@
       for (let i = 0; i < labelsPerPage; i++) {
         const col = i % cols;
         const row = Math.floor(i / cols);
-
         const x = marginX + col * labelWidth;
         const y = marginY + row * labelHeight;
 
-        // Draw border
-        doc.setDrawColor(150);
+        // Border
+        doc.setDrawColor(120);
+        doc.setLineWidth(0.3);
         doc.rect(x, y, labelWidth, labelHeight);
 
-        // Draw text block centered
-        const textX = x + labelWidth / 2;
-        let textY = y + 6;
+        // Text layout
+        const centerX = x + labelWidth / 2;
+        let lineY = y + 6;
 
-        doc.setFont("courier", "normal");
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7);
+        doc.setTextColor(33);
+        doc.text("Imported & Distributed by", centerX, lineY, { align: "center" });
+
+        lineY += 5;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9);
+        doc.setTextColor(0, 102, 153);
+        doc.text(company, centerX, lineY, { align: "center" });
+
+        lineY += 5;
+        doc.setFont("helvetica", "normal");
         doc.setFontSize(7);
         doc.setTextColor(0);
-        doc.text("Imported & Distributed by", textX, textY, { align: "center" });
+        doc.text(address1, centerX, lineY, { align: "center" });
 
-        doc.setFont("courier", "bold");
-        doc.setFontSize(9);
-        textY += 5;
-        doc.setTextColor(0, 102, 153);
-        doc.text(company, textX, textY, { align: "center" });
+        lineY += 4;
+        doc.text(address2, centerX, lineY, { align: "center" });
 
-        doc.setFont("courier", "normal");
-        doc.setFontSize(8);
-        doc.setTextColor(0);
-        textY += 4;
-        doc.text(address1, textX, textY, { align: "center" });
-        textY += 4;
-        doc.text(address2, textX, textY, { align: "center" });
-
-        doc.setFont("courier", "bold");
+        lineY += 6;
+        doc.setFont("helvetica", "bold");
         doc.setFontSize(10);
-        textY += 5;
-        doc.text(`MRP: ৳${price}`, textX, textY, { align: "center" });
+        doc.setTextColor(0);
+        doc.text(`MRP: ৳${price}`, centerX, lineY, { align: "center" });
       }
     }
 
