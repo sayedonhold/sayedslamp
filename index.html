@@ -320,13 +320,13 @@
 <div id="labelGeneratorPage" class="page-content">
   <div class="mb-6">
     <h2 class="text-2xl font-bold text-gray-100 mb-2">Label Generator</h2>
-    <p class="text-gray-400">Enter the price to generate printable product labels.</p>
+    <p class="text-gray-400">Generate and print product labels perfectly aligned to A4 sticker sheets.</p>
   </div>
 
   <div class="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
-    <form id="labelForm" class="space-y-4">
+    <form id="labelForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-1">Enter Price (৳)</label>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Price (৳)</label>
         <input type="number" id="labelPrice" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100">
       </div>
 
@@ -346,16 +346,16 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-1">Number of Pages</label>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Pages to Generate</label>
         <input type="number" id="labelPages" value="1" min="1" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100">
       </div>
 
-      <div class="flex gap-4">
+      <div class="flex items-end gap-4 mt-2 md:mt-0">
         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">
           Preview Labels
         </button>
-        <button type="button" onclick="saveLabelDefaults()" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg">
-          Save Info
+        <button type="button" onclick="printLabels()" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg">
+          Print Labels
         </button>
       </div>
     </form>
@@ -363,24 +363,22 @@
 
   <div class="mt-6">
     <h3 class="text-xl font-bold text-gray-100 mb-2">Preview:</h3>
-    <iframe id="labelPreview" class="w-full h-[600px] border border-gray-700 rounded-lg bg-white"></iframe>
+    <iframe id="labelPreview" class="w-full h-[700px] border border-gray-700 rounded-lg bg-white"></iframe>
   </div>
 </div>
 
-<!-- JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   window.addEventListener("load", () => {
     document.getElementById("labelCompany").value = localStorage.getItem("labelCompany") || "AS ENTERPRISE";
     document.getElementById("labelAddress1").value = localStorage.getItem("labelAddress1") || "House No-43, Plot No-26, Mokim Katara";
-    document.getElementById("labelAddress2").value = localStorage.getItem("labelAddress2") || "Mowlovhi Bazaar, Dhaka, 1200";
+    document.getElementById("labelAddress2").value = localStorage.getItem("labelAddress2") || "Moulvibazar, Dhaka, 1200";
   });
 
-  function saveLabelDefaults() {
-    localStorage.setItem("labelCompany", document.getElementById("labelCompany").value);
-    localStorage.setItem("labelAddress1", document.getElementById("labelAddress1").value);
-    localStorage.setItem("labelAddress2", document.getElementById("labelAddress2").value);
-    alert("Saved to local storage.");
+  function printLabels() {
+    const iframe = document.getElementById("labelPreview");
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
   }
 
   document.getElementById("labelForm").addEventListener("submit", function (e) {
@@ -395,59 +393,52 @@
 
     const doc = new jsPDF("portrait", "mm", "a4");
 
-    const labelWidth = 36; // 3.6cm
-    const labelHeight = 16; // 1.6cm
+    const labelWidth = 48; // mm
+    const labelHeight = 25; // mm
+    const cols = 4;
+    const rows = 10;
     const marginX = 5;
-    const marginY = 5;
-
-    const pageWidth = 210;
-    const pageHeight = 297;
-
-    const cols = Math.floor((pageWidth - 2 * marginX) / labelWidth);
-    const rows = Math.floor((pageHeight - 2 * marginY) / labelHeight);
-    const labelsPerPage = cols * rows;
+    const marginY = 10;
 
     for (let p = 0; p < pages; p++) {
       if (p > 0) doc.addPage();
 
-      for (let i = 0; i < labelsPerPage; i++) {
+      for (let i = 0; i < cols * rows; i++) {
         const col = i % cols;
         const row = Math.floor(i / cols);
         const x = marginX + col * labelWidth;
         const y = marginY + row * labelHeight;
 
-        // Draw border
-        doc.setDrawColor(120);
-        doc.setLineWidth(0.2);
+        // Border
+        doc.setDrawColor(150);
         doc.rect(x, y, labelWidth, labelHeight);
 
-        // Center text inside the label
+        // Text Content
         const centerX = x + labelWidth / 2;
-        let lineY = y + 4;
+        let lineY = y + 5;
 
-        doc.setFont("helvetica", "normal");
         doc.setFontSize(6);
         doc.setTextColor(50);
         doc.text("Imported & Distributed by", centerX, lineY, { align: "center" });
 
-        lineY += 3.3;
+        lineY += 3.2;
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(7.3);
+        doc.setFontSize(7.5);
         doc.setTextColor(0, 102, 153);
         doc.text(company, centerX, lineY, { align: "center" });
 
         lineY += 3.2;
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(6.3);
+        doc.setFontSize(6.2);
         doc.setTextColor(0);
         doc.text(address1, centerX, lineY, { align: "center" });
 
         lineY += 3.1;
         doc.text(address2, centerX, lineY, { align: "center" });
 
-        lineY += 3.5;
+        lineY += 4;
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(7.5);
+        doc.setFontSize(8);
         doc.setTextColor(0);
         doc.text(`MRP: ৳${price}`, centerX, lineY, { align: "center" });
       }
@@ -455,7 +446,6 @@
 
     const pdfDataUri = doc.output("dataurlstring");
     document.getElementById("labelPreview").src = pdfDataUri;
-    window.open(pdfDataUri, "_blank");
   });
 </script>
 
