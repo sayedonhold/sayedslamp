@@ -422,28 +422,30 @@
         const centerX = x + labelWidth / 2;
         let lineY = y + 5;
 
-        // Line 1: Text
-        doc.setFontSize(6);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(50);
-        doc.text("Imported & Distributed by", centerX, lineY, { align: "center" });
+// Line 1: Text
+doc.setFontSize(6);
+doc.setFont("helvetica", "normal");
+doc.setTextColor(50);
+doc.text("Imported & Distributed by", centerX, lineY, { align: "center" });
 
-        // Line 2: Underline (28mm wide)
-        const underlineWidth = 38;
-        const underlineX1 = centerX - underlineWidth / 2;
-        const underlineX2 = centerX + underlineWidth / 2;
-        const underlineY = lineY + 0.8;
-        doc.setDrawColor(50);     // Match text color
-        doc.setLineWidth(0.15);    // Thin underline
-        doc.line(underlineX1, underlineY, underlineX2, underlineY);
+// Line 2: Underline (38mm wide)
+const underlineWidth = 38;
+const underlineX1 = centerX - underlineWidth / 2;
+const underlineX2 = centerX + underlineWidth / 2;
+const underlineY = lineY + 0.8;
+doc.setDrawColor(50);     // Match text color
+doc.setLineWidth(0.15);   // Thin underline
+doc.line(underlineX1, underlineY, underlineX2, underlineY);
 
+// ➕ Add more space below the underline (adjust this value to control spacing)
+lineY = underlineY + 1.8;  // previously you had += 3.2, now it’s more precise
 
-          
-        lineY += 3.2;
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(10);
-        doc.setTextColor(21, 82, 17);
-        doc.text(company, centerX, lineY, { align: "center" });
+// Line 3: Company Name
+doc.setFont("helvetica", "bold");
+doc.setFontSize(10);
+doc.setTextColor(21, 82, 17);
+doc.text(company, centerX, lineY, { align: "center" });
+
 
         lineY += 3.2;
         doc.setFont("helvetica", "normal");
@@ -458,7 +460,7 @@
         doc.setFont("helvetica", "bold");
         doc.setFontSize(9.5);
         doc.setTextColor(0);
-        doc.text(`MRP: tk. ${price}`, centerX, lineY, { align: "center" });
+        doc.text(`MRP: Tk. ${price}`, centerX, lineY, { align: "center" });
       }
     }
 
