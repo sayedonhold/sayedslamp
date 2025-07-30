@@ -422,11 +422,6 @@
         const centerX = x + labelWidth / 2;
         let lineY = y + 5;
 
-// Required variables
-const centerX = doc.internal.pageSize.getWidth() / 2;
-let lineY = 10;  // Starting Y position
-const company = "AS ENTERPRISE";
-
 // Line 1: "Imported & Distributed by"
 doc.setFontSize(6);
 doc.setFont("helvetica", "normal");
@@ -439,7 +434,7 @@ const underlineX1 = centerX - underlineWidth / 2;
 const underlineX2 = centerX + underlineWidth / 2;
 const underlineY = lineY + 0.8;
 doc.setDrawColor(50);
-doc.setLineWidth(0.15);
+doc.setLineWidth(0.2);
 doc.line(underlineX1, underlineY, underlineX2, underlineY);
 
 // Line 3: Company Name
