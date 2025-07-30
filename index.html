@@ -432,13 +432,13 @@ doc.text("Imported & Distributed by", centerX, lineY, { align: "center" });
 const underlineWidth = 38;
 const underlineX1 = centerX - underlineWidth / 2;
 const underlineX2 = centerX + underlineWidth / 2;
-const underlineY = lineY + 2;
+const underlineY = lineY + 0.7;
 doc.setDrawColor(50);
 doc.setLineWidth(0.2);
 doc.line(underlineX1, underlineY, underlineX2, underlineY);
 
 // Line 3: Company Name
-lineY = underlineY + 2.5;
+lineY = underlineY + 4;
 doc.setFont("helvetica", "bold");
 doc.setFontSize(10);
 doc.setTextColor(21, 82, 17); // Dark green
