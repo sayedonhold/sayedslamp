@@ -422,7 +422,12 @@
         const centerX = x + labelWidth / 2;
         let lineY = y + 5;
 
-// Line 1: Text
+// Required variables
+const centerX = doc.internal.pageSize.getWidth() / 2;
+let lineY = 10;  // Starting Y position
+const company = "AS ENTERPRISE";
+
+// Line 1: "Imported & Distributed by"
 doc.setFontSize(6);
 doc.setFont("helvetica", "normal");
 doc.setTextColor(50);
@@ -433,20 +438,18 @@ const underlineWidth = 38;
 const underlineX1 = centerX - underlineWidth / 2;
 const underlineX2 = centerX + underlineWidth / 2;
 const underlineY = lineY + 0.8;
-doc.setDrawColor(50);     // Match text color
-doc.setLineWidth(0.15);   // Thin underline
+doc.setDrawColor(50);
+doc.setLineWidth(0.15);
 doc.line(underlineX1, underlineY, underlineX2, underlineY);
 
-// ➕ Add more space below the underline (adjust this value to control spacing)
-lineY = underlineY + 1.8;  // previously you had += 3.2, now it’s more precise
-
 // Line 3: Company Name
+lineY = underlineY + 2.5;
 doc.setFont("helvetica", "bold");
 doc.setFontSize(10);
-doc.setTextColor(21, 82, 17);
+doc.setTextColor(21, 82, 17); // Dark green
 doc.text(company, centerX, lineY, { align: "center" });
 
-
+          
         lineY += 3.2;
         doc.setFont("helvetica", "normal");
         doc.setFontSize(6);
