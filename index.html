@@ -422,10 +422,20 @@
         const centerX = x + labelWidth / 2;
         let lineY = y + 5;
 
-        doc.setFontSize(6);
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(50);
-        doc.text("Imported & Distributed by", centerX, lineY, { align: "center" });
+        // Line 1: Text
+doc.setFontSize(6);
+doc.setFont("helvetica", "normal");
+doc.setTextColor(50);
+doc.text("Imported & Distributed by", centerX, lineY, { align: "center" });
+
+// Line 2: Underline (28mm wide)
+const underlineWidth = 28;
+const underlineX1 = centerX - underlineWidth / 2;
+const underlineX2 = centerX + underlineWidth / 2;
+const underlineY = lineY + 0.8;
+doc.setDrawColor(50);     // Match text color
+doc.setLineWidth(0.2);    // Thin underline
+doc.line(underlineX1, underlineY, underlineX2, underlineY);
 
         lineY += 3.2;
         doc.setFont("helvetica", "bold");
