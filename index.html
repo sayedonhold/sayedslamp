@@ -320,13 +320,13 @@
 <div id="labelGeneratorPage" class="page-content">
   <div class="mb-6">
     <h2 class="text-2xl font-bold text-gray-100 mb-2">Label Generator</h2>
-    <p class="text-gray-400">Generate and print product labels perfectly aligned to A4 sticker sheets.</p>
+    <p class="text-gray-400">Generate 2cm x 4cm labels (5×14 layout) aligned perfectly on A4. Clean & professional.</p>
   </div>
 
   <div class="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
     <form id="labelForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-1">Price (৳)</label>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Price (TK)</label>
         <input type="number" id="labelPrice" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100">
       </div>
 
@@ -367,6 +367,7 @@
   </div>
 </div>
 
+<!-- JS Libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   window.addEventListener("load", () => {
@@ -393,12 +394,21 @@
 
     const doc = new jsPDF("portrait", "mm", "a4");
 
-    const labelWidth = 48; // mm
-    const labelHeight = 25; // mm
-    const cols = 4;
-    const rows = 10;
-    const marginX = 5;
-    const marginY = 10;
+    const labelWidth = 40;  // mm (4cm)
+    const labelHeight = 20; // mm (2cm)
+    const cols = 5;
+    const rows = 14;
+
+    const pageWidth = 210;
+    const pageHeight = 297;
+
+    // Calculate total label area
+    const totalLabelWidth = cols * labelWidth;
+    const totalLabelHeight = rows * labelHeight;
+
+    // Centering margins
+    const offsetX = (pageWidth - totalLabelWidth) / 2;
+    const offsetY = (pageHeight - totalLabelHeight) / 2;
 
     for (let p = 0; p < pages; p++) {
       if (p > 0) doc.addPage();
@@ -406,41 +416,37 @@
       for (let i = 0; i < cols * rows; i++) {
         const col = i % cols;
         const row = Math.floor(i / cols);
-        const x = marginX + col * labelWidth;
-        const y = marginY + row * labelHeight;
+        const x = offsetX + col * labelWidth;
+        const y = offsetY + row * labelHeight;
 
-        // Border
-        doc.setDrawColor(150);
-        doc.rect(x, y, labelWidth, labelHeight);
-
-        // Text Content
         const centerX = x + labelWidth / 2;
         let lineY = y + 5;
 
         doc.setFontSize(6);
+        doc.setFont("helvetica", "normal");
         doc.setTextColor(50);
         doc.text("Imported & Distributed by", centerX, lineY, { align: "center" });
 
         lineY += 3.2;
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(7.5);
+        doc.setFontSize(7.2);
         doc.setTextColor(0, 102, 153);
         doc.text(company, centerX, lineY, { align: "center" });
 
         lineY += 3.2;
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(6.2);
+        doc.setFontSize(6);
         doc.setTextColor(0);
         doc.text(address1, centerX, lineY, { align: "center" });
 
-        lineY += 3.1;
+        lineY += 3;
         doc.text(address2, centerX, lineY, { align: "center" });
 
-        lineY += 4;
+        lineY += 4.5;
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(8);
+        doc.setFontSize(9.5);
         doc.setTextColor(0);
-        doc.text(`MRP: ৳${price}`, centerX, lineY, { align: "center" });
+        doc.text(`MRP: TK ${price}`, centerX, lineY, { align: "center" });
       }
     }
 
