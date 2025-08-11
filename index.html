@@ -2852,10 +2852,11 @@ Garden Hose-Home &amp; Garden-45.50" rows="8"></textarea>
             }, 100);
         }
 
-        function updateInvoiceItemsTable() {
+        
+function updateInvoiceItemsTable() {
             const tbody = document.getElementById('invoiceItemsTable');
             tbody.innerHTML = '';
-            
+
             currentInvoiceItems.forEach((item, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -2873,16 +2874,57 @@ Garden Hose-Home &amp; Garden-45.50" rows="8"></textarea>
                     </td>
                     <td class="px-4 py-3 text-gray-100">৳${item.total.toFixed(2)}</td>
                     <td class="px-4 py-3">
-                        <button onclick="removeInvoiceItem(${index})" class="text-red-400 hover:text-red-300">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <div class="flex items-center space-x-2">
+                            <button type="button" onclick="moveInvoiceItemUp(${index})" class="text-yellow-400 hover:text-yellow-300 px-2 py-1 rounded" title="Move up" ${'${index === 0 ? "disabled" : ""}'}>
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                            <button type="button" onclick="moveInvoiceItemDown(${index})" class="text-yellow-400 hover:text-yellow-300 px-2 py-1 rounded" title="Move down" ${'${index === currentInvoiceItems.length - 1 ? "disabled" : ""}'}>
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                            <button type="button" onclick="removeInvoiceItem(${index})" class="text-red-400 hover:text-red-300 px-2 py-1 rounded" title="Remove">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
         }
 
-        function handleQtyKeydown(event, index) {
+        // Move item up by swapping with the previous item
+        function moveInvoiceItemUp(index) {
+            if (index <= 0) return;
+            const item = currentInvoiceItems.splice(index, 1)[0];
+            currentInvoiceItems.splice(index - 1, 0, item);
+            updateInvoiceItemsTable();
+            updateInvoiceTotals();
+            // keep focus on moved item qty input (new position is index-1)
+            setTimeout(() => {
+                const qtyInputs = document.querySelectorAll('.qty-input');
+                if (qtyInputs[index - 1]) {
+                    qtyInputs[index - 1].focus();
+                    qtyInputs[index - 1].select();
+                }
+            }, 50);
+        }
+
+        // Move item down by swapping with the next item
+        function moveInvoiceItemDown(index) {
+            if (index >= currentInvoiceItems.length - 1) return;
+            const item = currentInvoiceItems.splice(index, 1)[0];
+            currentInvoiceItems.splice(index + 1, 0, item);
+            updateInvoiceItemsTable();
+            updateInvoiceTotals();
+            // keep focus on moved item qty input (new position is index+1)
+            setTimeout(() => {
+                const qtyInputs = document.querySelectorAll('.qty-input');
+                if (qtyInputs[index + 1]) {
+                    qtyInputs[index + 1].focus();
+                    qtyInputs[index + 1].select();
+                }
+            }, 50);
+        }
+function handleQtyKeydown(event, index) {
             if (event.key === 'Enter') {
                 event.preventDefault();
                 // Move to price input for the same row
