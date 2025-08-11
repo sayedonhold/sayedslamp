@@ -346,260 +346,467 @@
 </div>
 
 <!-- Shipping Label Generator Page -->
-<div class="page-content hidden" id="shippingLabelPage">
-  <div class="mb-6">
-    <h2 class="text-2xl font-bold text-gray-100 mb-2">Shipping Label Generator</h2>
-    <p class="text-gray-400">Enter an invoice number to auto-fill shipping labels (6x per A4, portrait). Big customer name and address for easy reading.</p>
-  </div>
-
-  <div class="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
-    <form id="shippingForm" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-      <div>
-        <label class="block text-sm font-medium text-gray-300 mb-1">Invoice Number</label>
-        <input id="shippingInvoiceNumber" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100" placeholder="e.g. INV-013" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-300 mb-1">Invoice Source (optional)</label>
-        <select id="shippingInvoiceSource" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100">
-          <option value="invoices">invoices (default)</option>
-          <option value="erpData">erpData</option>
-        </select>
-      </div>
-      <div class="flex space-x-2">
-        <button type="button" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg" onclick="loadShippingInvoice()">Load Invoice</button>
-        <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg" onclick="previewShippingLabels()">Preview</button>
-        <button type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg" onclick="printShippingLabels()">Print</button>
-      </div>
-    </form>
-
-    <div class="mt-4 text-sm text-gray-400">
-      <p><strong>Note:</strong> The app will try to find the invoice in the in-memory <code>invoices</code> array, then <code>erpData.invoices</code>, and finally from localStorage <code>invoiceList</code> or <code>erpData</code>. If you need to provide your own invoice list, paste JSON into localStorage key <code>invoiceList</code> (array of invoice objects).</p>
-    </div>
-  </div>
-
-  <div class="mt-6">
-    <h3 class="text-xl font-bold text-gray-100 mb-2">Preview:</h3>
-    <iframe id="shippingPreview" class="w-full h-[700px] border border-gray-700 rounded-lg bg-white"></iframe>
-  </div>
-</div>
-
-<script>
-  // Shipping Label Generator logic
-  
-function findInvoiceByNumber(invoiceNo) {
-    if (!invoiceNo) return null;
-    const normalize = v => (v === undefined || v === null) ? '' : String(v).trim().toLowerCase().replace(/[^a-z0-9]/g,'');
-    const target = normalize(invoiceNo);
-
-    function searchList(list) {
-      if (!Array.isArray(list)) return null;
-      for (let i=0;i<list.length;i++) {
-        const inv = list[i];
-        const candidates = [inv.number, inv.invoice_no, inv.invoiceNumber, inv.invoiceNo, inv.id, inv.ref, inv.reference, inv.code, inv.serial, inv.invoice];
-        for (const c of candidates) {
-          if (c !== undefined && c !== null) {
-            if (normalize(c) === target) return inv;
-          }
-        }
-      }
-      return null;
-    }
-
-    // 1. Global invoices
-    try {
-      if (window.invoices && Array.isArray(window.invoices)) {
-        const f = searchList(window.invoices);
-        if (f) return f;
-      }
-    } catch(e){}
-
-    // 2. erpData
-    try {
-      const erp = window.erpData || JSON.parse(localStorage.getItem('erpData') || '{}');
-      if (erp && erp.invoices && Array.isArray(erp.invoices)) {
-        const f = searchList(erp.invoices);
-        if (f) return f;
-      }
-    } catch(e){}
-
-    // 3. invoiceList / invoices in localStorage
-    try {
-      const raw = localStorage.getItem('invoiceList') || localStorage.getItem('invoices');
-      if (raw) {
-        const list = JSON.parse(raw);
-        const f = searchList(list);
-        if (f) return f;
-      }
-    } catch(e){}
-
-    // 4. fallback: search textually
-    try {
-      const raw2 = localStorage.getItem('invoices') || localStorage.getItem('invoiceList');
-      if (raw2) {
-        const arr = JSON.parse(raw2);
-        if (Array.isArray(arr)) {
-          const f = arr.find(i => {
-            const combined = JSON.stringify(i).toLowerCase().replace(/[^a-z0-9]/g,'');
-            return combined.includes(target);
-          });
-          if (f) return f;
-        }
-      }
-    } catch(e){}
-
-    return null;
-  }
-function getCompanyInfoForLabel() {
-    try {
-      const stored = JSON.parse(localStorage.getItem('companyInfo') || '{}');
-      return {
-        name: stored.name || stored.companyName || 'Company Name',
-        address: stored.address || '',
-        phone: stored.phone || stored.contact || '',
-        logo: stored.logo || stored.logoData || ''
-      };
-    } catch(e) {
-      return { name: 'Company Name', address: '', phone: '', logo: '' };
-    }
-  }
-
-  function getCustomerFromInvoice(invoice) {
-    // invoice.customer may be string or object, also invoice.customerId may refer to customers array
-    let customer = null;
-    if (invoice.customer && typeof invoice.customer === 'object') {
-      customer = invoice.customer;
-    } else if (invoice.customer && typeof invoice.customer === 'string') {
-      // try to find in global customers
-      if (window.customers && Array.isArray(window.customers)) {
-        const found = window.customers.find(c => (c.name && c.name.toString().trim().toLowerCase() === invoice.customer.toString().trim().toLowerCase()) || (c.id && invoice.customer.toString().includes(c.id)));
-        if (found) customer = found;
-      }
-    }
-
-    if (!customer && invoice.customerId && window.customers && Array.isArray(window.customers)) {
-      const found2 = window.customers.find(c => c.id === invoice.customerId);
-      if (found2) customer = found2;
-    }
-
-    // last resort: build from invoice fields
-    if (!customer) {
-      customer = {
-        name: invoice.customer || invoice.customerName || invoice.shippingName || invoice.customer_name || 'Customer Name',
-        address: invoice.shippingAddress || invoice.address || invoice.customerAddress || '',
-        city: invoice.city || '',
-        state: invoice.state || '',
-        zip: invoice.zip || invoice.postal || '',
-        country: invoice.country || '',
-        phone: invoice.customerPhone || invoice.phone || ''
-      };
-    } else {
-      // normalize fields
-      customer = {
-        name: customer.name || customer.fullName || customer.customerName || '',
-        address: customer.address || customer.address1 || customer.street || '',
-        city: customer.city || customer.town || '',
-        state: customer.state || '',
-        zip: customer.zip || customer.postal || '',
-        country: customer.country || '',
-        phone: customer.phone || customer.mobile || ''
-      };
-    }
-
-    return customer;
-  }
-
-  function computeTotalItems(invoice) {
-    if (!invoice) return 0;
-    if (invoice.totalItems) return Number(invoice.totalItems);
-    if (!Array.isArray(invoice.items)) return 0;
-    return invoice.items.reduce((acc, it) => {
-      const q = Number(it.quantity || it.qty || it.q || it.quantity_sold || 1);
-      return acc + (isNaN(q) ? 0 : q);
-    }, 0);
-  }
-
-  function generateShippingLabelsHtml(invoice) {
-    const company = getCompanyInfoForLabel();
-    const customer = getCustomerFromInvoice(invoice);
-    const totalItems = computeTotalItems(invoice);
-    const invoiceDate = invoice.date || invoice.invoiceDate || invoice.createdAt || '';
-    const invoiceNumber = invoice.number || invoice.invoice_no || invoice.invoiceNumber || '';
-
-    // build printable HTML with 6 labels (2 columns x 3 rows)
-    const labelHtml = `
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8"/>
-<title>Shipping Labels - ${invoiceNumber}</title>
-<style>
-  @page { size: A4 portrait; margin: 0; }
-  html,body{margin:0;padding:0;width:210mm;height:297mm;font-family: Arial, Helvetica, sans-serif;color:#000;}
-  .sheet{box-sizing:border-box;width:210mm;height:297mm;padding:2mm;display:flex;flex-wrap:wrap;align-content:flex-start;gap:2mm;}
-  .label{box-sizing:border-box;width:calc((210mm - 6mm)/2);height:calc((297mm - 8mm) / 3);border:2px solid rgb(11,54,19);border-radius:6px;padding:6px;display:flex;flex-direction:column;justify-content:space-between;background:white;}
-  .top{display:flex;align-items:flex-start;gap:8px;}
-  .logo{width:58px;height:58px;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-  .logo img{max-width:100%;max-height:100%;object-fit:contain;}
-  .company{flex:1;padding-left:6px;}
-  .company h3{margin:0;font-size:12px;}
-  .company p{margin:0;font-size:11px;line-height:1.05;}
-  .qr{width:58px;height:58px;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;font-size:10px;}
-  .box{border:1px dashed #999;padding:6px;margin-top:8px;flex:1;display:flex;flex-direction:column;justify-content:center;}
-  .box .label-title{font-size:11px;margin-bottom:6px;color:#333;}
-  .customer-name{font-size:22px;font-weight:700;margin:0 0 6px 0;line-height:1;}
-  .customer-address{font-size:15px;margin:0;line-height:1.15;}
-  .meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-top:6px;}
-  .footer{background:transparent;padding:4px;text-align:center;font-size:11px;border-top:1px solid rgba(0,0,0,0.05);margin-top:6px;}
-  /* ensure no extra printing artifacts */
-  @media print {
-    .sheet{padding:0;gap:2mm;}
-    .label{border-width:2px;}
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping Label Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'brand': {
+                            50: '#f0f9f4',
+                            100: '#dcf2e3',
+                            200: '#bce5cb',
+                            300: '#8dd1a8',
+                            400: '#57b67e',
+                            500: '#0c5220',
+                            600: '#0a471c',
+                            700: '#083c18',
+                            800: '#073115',
+                            900: '#062812'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-area, .print-area * {
+                visibility: visible;
+            }
+            .print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+            @page {
+                margin: 0.5cm;
+                size: A4;
+            }
+        }
+        
+        .label {
+            width: calc(32% - 8px);
+            height: calc(48% - 8px);
+            border: 2px solid #000;
+            box-sizing: border-box;
+            margin: 4px;
+        }
+        
+        .print-page {
+            width: 21cm;
+            height: 29.7cm;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 0;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 8px;
+        }
+    </style>
 </head>
-<body>
-  <div class="sheet">
-    ${Array.from({length:6}).map(()=>`
-      <div class="label" role="article">
-        <div>
-          <div class="top">
-            <div class="logo">${company.logo ? `<img src="${company.logo}" alt="logo">` : '<div style="font-weight:700;color:rgb(11,54,19)">LOGO</div>'}</div>
-            <div class="company">
-              <h3>${escapeHtml(company.name)}</h3>
-              <p>${escapeHtml(company.address)}</p>
-              <p>${escapeHtml(company.phone)}</p>
+<body class="bg-gray-100 dark:bg-gray-900 p-4 transition-colors duration-300">
+    <div class="max-w-6xl mx-auto">
+        <!-- Dark Mode Toggle -->
+        <div class="no-print flex justify-end mb-4">
+            <button onclick="toggleDarkMode()" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-300 flex items-center gap-2">
+                <i id="darkModeIcon" class="fas fa-moon"></i>
+                <span id="darkModeText">Dark Mode</span>
+            </button>
+        </div>
+        
+        <!-- Input Form -->
+        <div class="no-print bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6 transition-colors duration-300">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6">Shipping Label Generator</h1>
+            
+            <!-- Company Settings -->
+            <div class="mb-6 p-4 bg-brand-50 dark:bg-brand-900/30 rounded-lg transition-colors duration-300">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-brand-800 dark:text-brand-300">Company Information</h2>
+                    <button onclick="saveCompanySettings()" class="bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-300 flex items-center gap-2">
+                        <i class="fas fa-save"></i>
+                        Save Company Settings
+                    </button>
+                </div>
+                <div id="saveStatus" class="hidden bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 px-4 py-2 rounded mb-4 flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i>
+                    Company settings saved successfully!
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Name</label>
+                        <input type="text" id="companyName" class="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300" placeholder="Your Company Name" value="ABC Logistics Ltd.">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Slogan</label>
+                        <input type="text" id="companySlogan" class="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300" placeholder="Your Company Slogan" value="Delivering Excellence Worldwide">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Address</label>
+                        <textarea id="companyAddress" rows="3" class="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300" placeholder="Company Address">123 Business Street
+Industrial Area, City 12345
+Country</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone Number</label>
+                        <input type="text" id="companyPhone" class="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300" placeholder="+1 (555) 123-4567" value="+1 (555) 123-4567">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+                        <input type="email" id="companyEmail" class="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300" placeholder="info@company.com" value="info@abclogistics.com">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Logo</label>
+                        <input type="file" id="companyLogo" accept="image/*" class="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300">
+                        <div id="logoPreview" class="mt-2 hidden">
+                            <img id="logoImage" src="" alt="Logo Preview" class="h-16 w-auto border rounded">
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="qr">QR</div>
-          </div>
 
-          <div class="box">
-            <div class="label-title">Shipping to :</div>
-            <div>
-              <div class="customer-name">${escapeHtml(customer.name)}</div>
-              <div class="customer-address">${escapeHtml(customer.address)}${customer.city?'<br/>'+escapeHtml(customer.city):''}${customer.state?'<br/>'+escapeHtml(customer.state):''}${customer.zip?'<br/>'+escapeHtml(customer.zip):''}${customer.country?'<br/>'+escapeHtml(customer.country):''}</div>
+            <!-- Customer Information -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Customer Name *</label>
+                    <input type="text" id="customerName" class="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300" placeholder="Enter customer name" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Invoice Number *</label>
+                    <input type="text" id="invoiceNumber" class="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300" placeholder="INV-001" required>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Customer Address *</label>
+                    <textarea id="customerAddress" rows="3" class="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300" placeholder="Enter complete customer address" required></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Invoice Date *</label>
+                    <input type="date" id="invoiceDate" class="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Products in Invoice *</label>
+                    <input type="number" id="totalProducts" min="1" class="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300" placeholder="Total items in invoice" required>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Total number of products across all boxes</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Number of Boxes/Parcels *</label>
+                    <input type="number" id="numberOfLabels" min="1" class="w-full p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300" placeholder="How many boxes to ship?" required>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Number of shipping labels needed (one per box)</p>
+                </div>
             </div>
-          </div>
+
+            <div class="flex gap-4 mt-6">
+                <button onclick="generateLabels()" class="bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-300 flex items-center gap-2">
+                    <i class="fas fa-tags"></i>
+                    Generate Labels
+                </button>
+                <button onclick="printLabels()" class="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-300 flex items-center gap-2">
+                    <i class="fas fa-print"></i>
+                    Print Labels
+                </button>
+                <button onclick="clearForm()" class="bg-gray-600 hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-300 flex items-center gap-2">
+                    <i class="fas fa-eraser"></i>
+                    Clear Form
+                </button>
+            </div>
         </div>
 
-        <div>
-          <div class="meta">
-            <div>Invoice: ${escapeHtml(invoiceNumber)}</div>
-            <div>Date: ${escapeHtml(invoiceDate)}</div>
-          </div>
-          <div class="footer">Total Items: ${totalItems} &nbsp; &nbsp; THANK YOU FOR BEING AN AMAZING CUSTOMER</div>
+        <!-- Preview Area -->
+        <div id="previewArea" class="hidden">
+            <div class="no-print mb-4">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Label Preview</h2>
+                <p class="text-gray-600 dark:text-gray-400">Preview your labels before printing. Each A4 page contains 6 labels.</p>
+            </div>
+            <div id="labelPages"></div>
         </div>
-      </div>
-    `).join('')}
-  </div>
+    </div>
 
-<script>
-  // helper to ensure page prints when opened
-  window.onload = function(){ setTimeout(()=>{ try{ window.focus(); }catch(e){} }, 200); };
-<\/script>
-</body>
+    <script>
+        // Set today's date as default
+        document.getElementById('invoiceDate').value = new Date().toISOString().split('T')[0];
+
+        function generateLabels() {
+            const customerName = document.getElementById('customerName').value.trim();
+            const customerAddress = document.getElementById('customerAddress').value.trim();
+            const invoiceNumber = document.getElementById('invoiceNumber').value.trim();
+            const invoiceDate = document.getElementById('invoiceDate').value;
+            const totalProducts = parseInt(document.getElementById('totalProducts').value);
+            const numberOfLabels = parseInt(document.getElementById('numberOfLabels').value);
+
+            // Validation
+            if (!customerName || !customerAddress || !invoiceNumber || !invoiceDate || !totalProducts || !numberOfLabels) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            // Get company information
+            const companyName = document.getElementById('companyName').value.trim();
+            const companySlogan = document.getElementById('companySlogan').value.trim();
+            const companyAddress = document.getElementById('companyAddress').value.trim();
+            const companyPhone = document.getElementById('companyPhone').value.trim();
+            const companyEmail = document.getElementById('companyEmail').value.trim();
+            const logoImage = document.getElementById('logoImage').src;
+
+            // Calculate number of pages needed (6 labels per page)
+            const totalLabels = numberOfLabels;
+            const labelsPerPage = 6;
+            const totalPages = Math.ceil(totalLabels / labelsPerPage);
+
+            const labelPagesContainer = document.getElementById('labelPages');
+            labelPagesContainer.innerHTML = '';
+
+            // Generate pages
+            for (let page = 0; page < totalPages; page++) {
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'print-page mb-8';
+                
+                const startLabel = page * labelsPerPage + 1;
+                const endLabel = Math.min(startLabel + labelsPerPage - 1, totalLabels);
+
+                // Generate labels for this page
+                for (let labelNum = startLabel; labelNum <= endLabel; labelNum++) {
+                    const labelDiv = document.createElement('div');
+                    labelDiv.className = 'label p-4 flex flex-col justify-between';
+                    
+                    labelDiv.innerHTML = `
+                        <!-- Company Header -->
+                        <div class="text-center border-b-2 border-gray-300 pb-2 mb-2">
+                            ${logoImage ? `<img src="${logoImage}" alt="Company Logo" class="h-12 w-auto mx-auto mb-2">` : ''}
+                            <div class="text-lg font-bold" style="color: #0c5220;">${companyName}</div>
+                            ${companySlogan ? `<div class="text-xs italic" style="color: #57b67e;">${companySlogan}</div>` : ''}
+                            <div class="text-xs text-gray-600 mt-1">${companyAddress}</div>
+                            <div class="text-xs text-gray-600">
+                                <i class="fas fa-phone" style="color: #0c5220;"></i> ${companyPhone} | 
+                                <i class="fas fa-envelope" style="color: #0c5220;"></i> ${companyEmail}
+                            </div>
+                        </div>
+
+                        <!-- Customer Information - Centered -->
+                        <div class="text-center mb-2 flex-grow">
+                            <div class="text-xs text-gray-500 uppercase tracking-wide mb-1 flex items-center justify-center gap-1">
+                                <i class="fas fa-shipping-fast" style="color: #0c5220;"></i>
+                                SHIP TO:
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 leading-tight mb-2">${customerName}</div>
+                            <div class="text-lg text-gray-800 leading-tight">${customerAddress.replace(/\n/g, '<br>')}</div>
+                        </div>
+
+                        <!-- Invoice Details -->
+                        <div class="grid grid-cols-2 gap-2 text-xs mb-2 border-t border-gray-200 pt-2">
+                            <div class="text-center">
+                                <span class="text-gray-500 flex items-center justify-center gap-1">
+                                    <i class="fas fa-file-invoice" style="color: #0c5220;"></i>
+                                    Invoice #:
+                                </span>
+                                <div class="font-semibold">${invoiceNumber}</div>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-gray-500 flex items-center justify-center gap-1">
+                                    <i class="fas fa-calendar" style="color: #0c5220;"></i>
+                                    Date:
+                                </span>
+                                <div class="font-semibold">${new Date(invoiceDate).toLocaleDateString()}</div>
+                            </div>
+                        </div>
+
+                        <!-- Pack Number -->
+                        <div class="text-center border-t-2 border-gray-300 pt-2">
+                            <div class="text-2xl font-bold" style="color: #0c5220;">
+                                <i class="fas fa-box"></i> BOX ${labelNum}/${totalLabels}
+                            </div>
+                            <div class="text-xs text-gray-500 flex items-center justify-center gap-1">
+                                <i class="fas fa-cubes" style="color: #0c5220;"></i>
+                                Total Products in Invoice: ${totalProducts}
+                            </div>
+                        </div>
+                    `;
+                    
+                    pageDiv.appendChild(labelDiv);
+                }
+
+                // Fill remaining spaces with empty labels if needed
+                const remainingSpaces = labelsPerPage - (endLabel - startLabel + 1);
+                for (let i = 0; i < remainingSpaces; i++) {
+                    const emptyLabel = document.createElement('div');
+                    emptyLabel.className = 'label';
+                    pageDiv.appendChild(emptyLabel);
+                }
+
+                labelPagesContainer.appendChild(pageDiv);
+            }
+
+            // Show preview area
+            document.getElementById('previewArea').classList.remove('hidden');
+            
+            // Scroll to preview
+            document.getElementById('previewArea').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function printLabels() {
+            const previewArea = document.getElementById('previewArea');
+            if (previewArea.classList.contains('hidden')) {
+                alert('Please generate labels first before printing.');
+                return;
+            }
+            
+            // Add print-area class to the labels container
+            document.getElementById('labelPages').classList.add('print-area');
+            
+            window.print();
+            
+            // Remove print-area class after printing
+            setTimeout(() => {
+                document.getElementById('labelPages').classList.remove('print-area');
+            }, 1000);
+        }
+
+        function clearForm() {
+            if (confirm('Are you sure you want to clear all fields?')) {
+                document.getElementById('customerName').value = '';
+                document.getElementById('customerAddress').value = '';
+                document.getElementById('invoiceNumber').value = '';
+                document.getElementById('totalProducts').value = '';
+                document.getElementById('numberOfLabels').value = '';
+                document.getElementById('invoiceDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('previewArea').classList.add('hidden');
+            }
+        }
+
+        // Handle logo upload
+        document.getElementById('companyLogo').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const logoImage = document.getElementById('logoImage');
+                    const logoPreview = document.getElementById('logoPreview');
+                    logoImage.src = e.target.result;
+                    logoPreview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Save company settings manually
+        function saveCompanySettings() {
+            const companyInfo = {
+                name: document.getElementById('companyName').value,
+                slogan: document.getElementById('companySlogan').value,
+                address: document.getElementById('companyAddress').value,
+                phone: document.getElementById('companyPhone').value,
+                email: document.getElementById('companyEmail').value,
+                logo: document.getElementById('logoImage').src
+            };
+            localStorage.setItem('companyInfo', JSON.stringify(companyInfo));
+            
+            // Show save confirmation
+            const saveStatus = document.getElementById('saveStatus');
+            saveStatus.classList.remove('hidden');
+            setTimeout(() => {
+                saveStatus.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Auto-save company information to localStorage
+        function saveCompanyInfo() {
+            const companyInfo = {
+                name: document.getElementById('companyName').value,
+                slogan: document.getElementById('companySlogan').value,
+                address: document.getElementById('companyAddress').value,
+                phone: document.getElementById('companyPhone').value,
+                email: document.getElementById('companyEmail').value,
+                logo: document.getElementById('logoImage').src
+            };
+            localStorage.setItem('companyInfo', JSON.stringify(companyInfo));
+        }
+
+        // Load company information from localStorage
+        function loadCompanyInfo() {
+            const saved = localStorage.getItem('companyInfo');
+            if (saved) {
+                const companyInfo = JSON.parse(saved);
+                document.getElementById('companyName').value = companyInfo.name || '';
+                document.getElementById('companySlogan').value = companyInfo.slogan || '';
+                document.getElementById('companyAddress').value = companyInfo.address || '';
+                document.getElementById('companyPhone').value = companyInfo.phone || '';
+                document.getElementById('companyEmail').value = companyInfo.email || '';
+                
+                // Load logo if exists
+                if (companyInfo.logo && companyInfo.logo !== '') {
+                    document.getElementById('logoImage').src = companyInfo.logo;
+                    document.getElementById('logoPreview').classList.remove('hidden');
+                }
+            }
+        }
+
+        // Save company info when fields change
+        ['companyName', 'companySlogan', 'companyAddress', 'companyPhone', 'companyEmail'].forEach(id => {
+            document.getElementById(id).addEventListener('change', saveCompanyInfo);
+        });
+
+        // Load company info on page load
+        loadCompanyInfo();
+
+        // Dark mode functionality
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const darkModeText = document.getElementById('darkModeText');
+            const darkModeIcon = document.getElementById('darkModeIcon');
+            
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                darkModeText.textContent = 'Dark Mode';
+                darkModeIcon.className = 'fas fa-moon';
+                localStorage.setItem('darkMode', 'false');
+            } else {
+                html.classList.add('dark');
+                darkModeText.textContent = 'Light Mode';
+                darkModeIcon.className = 'fas fa-sun';
+                localStorage.setItem('darkMode', 'true');
+            }
+        }
+
+        // Load dark mode preference
+        function loadDarkMode() {
+            const darkMode = localStorage.getItem('darkMode');
+            const darkModeText = document.getElementById('darkModeText');
+            const darkModeIcon = document.getElementById('darkModeIcon');
+            
+            if (darkMode === 'true') {
+                document.documentElement.classList.add('dark');
+                darkModeText.textContent = 'Light Mode';
+                darkModeIcon.className = 'fas fa-sun';
+            } else {
+                document.documentElement.classList.remove('dark');
+                darkModeText.textContent = 'Dark Mode';
+                darkModeIcon.className = 'fas fa-moon';
+            }
+        }
+
+        // Load dark mode on page load
+        loadDarkMode();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d7702c057d4ea6',t:'MTc1NDkxMjIxNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
-    `;
-    return labelHtml;
+
   }
 
   // small html-escape helper
@@ -5008,3 +5215,4 @@ Garden Hose-Home &amp; Garden-45.50" rows="8"></textarea>
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'964ca9efa77d4e9f',t:'MTc1MzQ1NzA2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
