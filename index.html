@@ -3708,16 +3708,18 @@ function handleQtyKeydown(event, index) {
                                 <div>Phone: ${data.company.phone}</div>
                                 <div>Email: ${data.company.email}</div>
                             </div>
-                        </div>
-                        
-                        <div class="billing-box">
-                            <div class="billing-title">Bill To:</div>
-                            <div class="billing-content">
-                                <div><strong>${data.customer.name}</strong></div>
-                                <div>${data.customer.address}</div>
-                                                            </div>
-                        </div>
-                    </div>
+ </div>
+
+<div class="billing-box">
+    <div class="billing-title">Bill To:</div>
+    <div class="billing-content">
+        <div><strong>${data.customer.name}</strong></div>
+        <div>ID: ${data.customer.id}</div>
+        <div>Phone: ${data.customer.phone}</div>
+        <div>${data.customer.address}</div>
+    </div>
+</div>
+
                     
 
                         </div>
